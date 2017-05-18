@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>node mysql CRUD</title>
+</head>
+<body>
+<form action="/add" method="post" id="form">
+    <label for="username">
+        姓名：
+        <input type="text" name="username" id="username">
+    </label>
+    <label for="age">
+        年龄：
+        <input type="text" name="age" id="age">
+    </label>
+
+    <button type="submit" class="btn">增加一条</button>
+    <button class="btn_edi">确认修改</button>
+</form>
+<% if (info.length) { %>
+<ul>
+    <% info.forEach(function(item){ %>
+    <li class="list" data-id= <%= item.id %> > <span><%= item.id%></span>-- <span class="list-name"><%= item.name %></span> -- <span class="list-age"><%= item.age%></span> <a class="del" href="javascript:;">删除</a></li>
+    <% }) %>
+</ul>
+<% } %>
+<h4>添加一条个人信息</h4>
+
+
+
+<script src="/js/jquery-1.11.3.min.js"></script>
+<script src="/js/jquery.form.js"></script>
+<script>
+    $(document).ready(function () {
+        var options = {
+            beforeSubmit: function(){},  //提交前的回调函数
+            success: function(data){
+                console.log(data);
+                if(data.c==200){
+                    alert("数据插入成功");
+                    window.location.reload();
+                }
+            },      //提交后的回调函数
+            //url: url,                 //默认是form的action， 如果申明，则会覆盖
+            //type: type,               //默认是form的method（get or post），如果申明，则会覆盖
+            //dataType: null,           //html(默认), xml, script, json...接受服务端返回的类型
+            //clearForm: true,          //成功提交后，清除所有表单元素的值
+            //resetForm: true,          //成功提交后，重置所有表单元素的值
+            timeout: 3000               //限制请求的时间，当请求大于3秒后，跳出请求
+        };
+        $("#form").submit(function(){
+            $(this).ajaxSubmit(options);
+            return false;
+        });
+        $(document).on("click",".del",function(){
+            //获取id，给后台
+            var uid = $(this).parent().attr("data-id");
+            var that = $(this);
+            $.ajax({
+                url:'/delete?id='+uid,
+                dataType:'json',
+                type:"GET",
+                success:function(data){
+                    console.log(data);
+                    if(data.c==200){
+                        alert("删除成功");
+                        that.parent().remove();
+                    }
+                }
+            });
+            return false;
+        });
+        $(document).on("click",".list",function(){
+            var list_uid = $(this).attr("data-id");
+            var list_name = $(this).find(".list-name").text();
+            var list_age = $(this).find(".list-age").text();
+            $("#username").val(list_name);
+            $("#age").val(list_age);
+            $(".btn_edi").attr("uid",list_uid);
+        });
+        $(".btn_edi").on("click",function(){
+            $.ajax({
+                url:'/edi',
+                dataType:'json',
+                type:"POST",
+                data:{
+                    id:$(".btn_edi").attr("uid"),
+                    username:$("#username").val(),
+                    age:$("#age").val()
+                },
+                success:function(data){
+                    console.log(data);
+                    if(data.c==200){
+                        alert("修改成功");
+                        window.location.reload();
+                    }
+                }
+            });
+            return false;
+        });
+    });
+</script>
+</body>
+</html>
